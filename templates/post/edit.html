@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Post{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <h1>Edit post</h1>
+      <form action="/posts/edit" method="POST">
+        <!--
+          <div class="form-group has-error">
+            <label for="slug">Slug <span class="require">*</span> <small>(This field use in url path.)</small></label>
+            <input type="text" class="form-control" name="slug" />
+            <span class="help-block">Field not entered!</span>
+          </div>
+        -->
+        <input type="text" name="id" value="{{post_vm.id}}" hidden>
+        <input type="text" name="user_id" value="{{post_vm.user_id}}" hidden>
+        <div class="form-group">
+          <label for="title">Title <span class="require">*</span></label>
+          <input type="text" id="title" class="form-control" name="title" value="{{post_vm.title}}" />
+        </div>
+
+        <div class="form-group">
+          <label for="content">Description</label>
+          <textarea id="content" rows="8" class="form-control" name="content" value="{{post_vm.content}}"></textarea>
+        </div>
+
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary">
+            Edit
+          </button>
+          <button class="btn btn-default">
+            Cancel
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}

@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use tera::Tera;
 
 use crate::{
+    auth::jwt_middleware::JwtMiddleware,
     db::connection::{get_db_connection_from_pool, SqliteConnectionPool},
     models::{
         post::Post,
@@ -42,21 +43,8 @@ pub async fn index(
 }
 
 pub async fn create_user_get(tera: web::Data<Tera>) -> impl Responder {
-    // let user = user::UserCreateVM {
-    //     username: String::from(""),
-    //     password: String::from(""),
-    //     confirm_password: String::from(""),
-    //     profile_img: String::from(""),
-    // };
-    //
-    // //serialize the struct to json
-    // let form_json = serde_json::to_string(&user).unwrap();
-    //
     //render the form using tera
     let context = tera::Context::new();
-    // context.insert("form_json", &form_json);
-
-    // tera.register_filter("humanize", crate::utils::tera_filter::humanize_dt);
     //render the html template
     let rendered = match tera.render("user/create.html", &context) {
         Ok(t) => t,
@@ -175,4 +163,99 @@ pub async fn user_profile_get(
     HttpResponse::Ok()
         .content_type(ContentType::html())
         .body(rendered)
+}
+
+pub async fn edit_profile_get(
+    tera: web::Data<Tera>,
+    db_pool: web::Data<SqliteConnectionPool>,
+    auth: JwtMiddleware,
+) -> impl Responder {
+    use crate::schema::users::dsl::*;
+    //get the user id of currently logged in user
+    let user_id: i32 = auth.user_id.parse().expect("couldn't parse user id");
+
+    //get the user from db
+    let user: User = match users
+        .find(user_id)
+        .select(User::as_select())
+        .first(&mut get_db_connection_from_pool(&db_pool).unwrap())
+        .optional()
+    {
+        Ok(usr) => match usr {
+            Some(u) => u,
+            None => return HttpResponse::NotFound().finish(),
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ops! something went wrong: {}", e))
+        }
+    };
+
+    //create the vm
+    let user_vm: UserVM = UserVM::from(&user);
+
+    //load the vm into context
+    let mut context = tera::Context::new();
+    context.insert("user_vm", &user_vm);
+
+    //render the template
+    let rendered = match tera.render("user/edit.html", &context) {
+        Ok(t) => t,
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Opssss! something went wong!\n{}", e,));
+        }
+    };
+    HttpResponse::Ok()
+        .content_type(ContentType::html())
+        .body(rendered)
+}
+
+pub async fn edit_profile_post(
+    auth: JwtMiddleware,
+    db_pool: web::Data<SqliteConnectionPool>,
+    mut user_vm: web::Form<UserVM>,
+) -> impl Responder {
+    use crate::schema::users::dsl::*;
+
+    //get the user id of currently logged in user
+    let user_id: i32 = auth.user_id.parse().expect("couldn't parse user id");
+    if user_id != user_vm.id {
+        return HttpResponse::BadRequest().body("Nonsese! trying to edit others data");
+    }
+
+    //get the user from db
+    let user: User = match users
+        .find(user_id)
+        .select(User::as_select())
+        .first(&mut get_db_connection_from_pool(&db_pool).unwrap())
+        .optional()
+    {
+        Ok(usr) => match usr {
+            Some(u) => u,
+            None => return HttpResponse::NotFound().finish(),
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ops! something went wrong: {}", e))
+        }
+    };
+
+    //check for image upload before updating user
+    if user_vm.profile_img.is_empty() {
+        user_vm.profile_img = String::from("/static/images/default.png");
+    }
+    match diesel::update(&user)
+        .set((
+            username.eq(user_vm.username.to_owned()),
+            profile_image.eq(user_vm.profile_img.to_owned()),
+        ))
+        .execute(&mut get_db_connection_from_pool(&db_pool).unwrap())
+    {
+        Ok(_) => return HttpResponse::Ok().body("Update successfull"),
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ops! something went wrong while updating: {}", e))
+        }
+    }
 }

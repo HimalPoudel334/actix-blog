@@ -19,7 +19,10 @@ pub fn app_routes(cfg: &mut web::ServiceConfig) {
             .route("", web::get().to(users::index))
             .route("/create", web::get().to(users::create_user_get))
             .route("/create", web::post().to(users::create_user_post))
+            .route("/profile/edit", web::get().to(users::edit_profile_get))
+            .route("/profile/edit", web::post().to(users::edit_profile_post))
             .route("/profile/{user_id}", web::get().to(users::user_profile_get)),
+        //this route is at last otherwise it will match /profile/edit as /profile/{user_id}
     )
     .service(
         web::scope("/posts")
