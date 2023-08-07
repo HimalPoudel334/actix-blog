@@ -1,7 +1,5 @@
-use chrono::{DateTime, Utc};
 use diesel::Queryable;
 use serde::{Deserialize, Serialize};
-use tera::Context;
 
 #[derive(Serialize, Deserialize)]
 pub struct PostCreateVM {
@@ -17,7 +15,7 @@ pub struct PostVM {
     pub created_on: String,
     pub user_id: i32,
 }
-
+/*
 impl PostVM {
     pub fn new(id: i32, title: String, content: String, created_on: String, user_id: i32) -> Self {
         Self {
@@ -37,3 +35,4 @@ pub fn humanize(created_on: String) -> String {
     let datetime_diff = chrono::Utc::now() - parsed_dt;
     chrono_humanize::HumanTime::from(datetime_diff).to_string()
 }
+*/

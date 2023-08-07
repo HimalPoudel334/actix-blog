@@ -26,13 +26,16 @@ async fn main() -> std::io::Result<()> {
     let app_config = config::ApplicationConfiguration::init();
 
     //loading the templating engine Tera
-    let tera = match Tera::new("templates/**/*.html") {
+    let mut tera = match Tera::new("templates/**/*.html") {
         Ok(t) => t,
         Err(e) => {
             println!("Template parsing error(s): {}", e);
             std::process::exit(1);
         }
     };
+
+    //register a custom filter for tera to humanize datetime
+    tera.register_filter("humanize", utils::tera_tags_helper::humanize_dt_filter);
 
     //initialize logger
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));

@@ -56,6 +56,7 @@ pub async fn create_user_get(tera: web::Data<Tera>) -> impl Responder {
     let context = tera::Context::new();
     // context.insert("form_json", &form_json);
 
+    // tera.register_filter("humanize", crate::utils::tera_filter::humanize_dt);
     //render the html template
     let rendered = match tera.render("user/create.html", &context) {
         Ok(t) => t,
