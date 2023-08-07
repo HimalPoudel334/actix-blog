@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Create User{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <form method="post" action="/users/create">
+      <div class="form-group">
+        <label for="username">Email address</label>
+        <input type="text" class="form-control" id="username" name="username" aria-describedby="username" placeholder="Username">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+      </div>
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
+      </div>
+      <div class="form-group">
+        <label for="profile_image">Photo</label>
+        <input type="file" class="form-control" name="profile_image" id="profile_image" placeholder="Profile Image">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+{% endblock %}
