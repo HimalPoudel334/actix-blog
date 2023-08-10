@@ -1,8 +1,7 @@
+use crate::config::ApplicationConfiguration;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::r2d2::{PoolError, PooledConnection};
 use diesel::sqlite::SqliteConnection;
-
-use crate::config::ApplicationConfiguration;
 
 pub type SqliteConnectionPool = Pool<ConnectionManager<SqliteConnection>>;
 pub type PooledSqliteConnection = PooledConnection<ConnectionManager<SqliteConnection>>;
@@ -28,3 +27,16 @@ pub fn get_db_connection_from_pool(
     let result = pool.get().unwrap();
     Ok(result)
 }
+
+// why doesn't this function work?
+
+// //function to setup redis for storing session data
+// pub fn get_redis_connection(
+//     app_config: &ApplicationConfiguration,
+// ) -> SessionMiddleware<SessionStore> {
+//     let redis_key_from_string: Key = Key::from(app_config.redis_secret_key.as_bytes());
+//     SessionMiddleware::new(
+//         RedisActorSessionStore::new(app_config.redis_url.to_owned()),
+//         redis_key_from_string.clone(),
+//     )
+// }

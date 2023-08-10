@@ -16,6 +16,7 @@
           </div>
         -->
         <input type="text" name="id" value="{{post_vm.id}}" hidden>
+        <input type="text" name="created_on" value="{{post_vm.created_on}}" hidden>
         <input type="text" name="user_id" value="{{post_vm.user_id}}" hidden>
         <div class="form-group">
           <label for="title">Title <span class="require">*</span></label>
@@ -24,7 +25,7 @@
 
         <div class="form-group">
           <label for="content">Description</label>
-          <textarea id="content" rows="8" class="form-control" name="content" value="{{post_vm.content}}"></textarea>
+          <textarea id="content" rows="8" class="form-control" name="content">{{post_vm.content}}</textarea>
         </div>
 
         <div class="form-group">

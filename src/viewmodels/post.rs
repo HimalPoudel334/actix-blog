@@ -1,5 +1,7 @@
-use diesel::Queryable;
+use diesel::{Queryable, Selectable};
 use serde::{Deserialize, Serialize};
+
+use crate::models::post::Post;
 
 #[derive(Serialize, Deserialize)]
 pub struct PostCreateVM {
@@ -15,24 +17,27 @@ pub struct PostVM {
     pub created_on: String,
     pub user_id: i32,
 }
-/*
+
 impl PostVM {
-    pub fn new(id: i32, title: String, content: String, created_on: String, user_id: i32) -> Self {
+    pub fn from(post: &Post) -> Self {
         Self {
-            id,
-            title,
-            content,
-            created_on: humanize(created_on),
-            user_id,
+            id: post.id,
+            title: post.title.to_owned(),
+            content: post.content.to_owned(),
+            created_on: post.created_on.to_owned(),
+            user_id: post.user_id,
         }
     }
 }
 
-pub fn humanize(created_on: String) -> String {
-    // let dt = chrono::Utc::now() - chrono::Duration::minutes(58);
-    let parsed_dt = created_on.parse::<DateTime<Utc>>().unwrap();
-
-    let datetime_diff = chrono::Utc::now() - parsed_dt;
-    chrono_humanize::HumanTime::from(datetime_diff).to_string()
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable)]
+pub struct UsersPostsVM {
+    pub uid: i32,
+    pub username: String,
+    pub profile_image: String,
+    pub pid: i32,
+    pub title: String,
+    pub content: String,
+    pub created_on: String,
+    pub user_id: i32,
 }
-*/

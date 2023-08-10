@@ -245,6 +245,7 @@ pub async fn edit_profile_post(
     if user_vm.profile_img.is_empty() {
         user_vm.profile_img = String::from("/static/images/default.png");
     }
+
     match diesel::update(&user)
         .set((
             username.eq(user_vm.username.to_owned()),

@@ -24,7 +24,7 @@
                      <div class="profile-header-info">
                         <h4 class="m-t-10 m-b-5">{{ user_profile.user.username }}</h4>
                         <p class="m-b-10">UXUI + Frontend Developer</p>
-                        <a href="#" class="btn btn-sm btn-info mb-2">Edit Profile</a>
+                        <a href="/users/profile/edit" class="btn btn-sm btn-info mb-2">Edit Profile</a>
                      </div>
                      <!-- END profile-header-info -->
                   </div>
@@ -54,7 +54,7 @@
                            <!-- begin timeline-time -->
                            <div class="timeline-time">
                               <span class="date">{{post.created_on | humanize }}</span>
-                              <span class="time">at {{ post.created_on | date(format="%H:%M %P") }}</span>
+                              <span class="time">at {{ post.created_on | date(format="%H:%M %P", timezone="Asia/Kathmandu") }}</span>
                            </div>
                            <!-- end timeline-time -->
                            <!-- begin timeline-icon -->

@@ -3,7 +3,7 @@ use chrono::Utc;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Identifiable, Associations, Deserialize, Queryable, Selectable, Insertable)]
+#[derive(Serialize, Identifiable, Associations, Deserialize, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::posts)]
 #[diesel(belongs_to(User))]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]

@@ -6,7 +6,8 @@ pub fn app_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/")
             .route("", web::get().to(home::index))
-            .route("privacy", web::post().to(home::privacy)),
+            .route("privacy", web::post().to(home::privacy))
+            .route("set-timezone", web::post().to(home::client_tz_set)),
     )
     .service(
         web::scope("/auth")
@@ -28,6 +29,8 @@ pub fn app_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/posts")
             .route("", web::get().to(posts::index))
             .route("/create", web::get().to(posts::create_post_get))
-            .route("/create", web::post().to(posts::create_post_post)),
+            .route("/create", web::post().to(posts::create_post_post))
+            .route("/edit", web::post().to(posts::edit_post_post))
+            .route("/edit/{post_id}", web::get().to(posts::edit_post_get)),
     );
 }

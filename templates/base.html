@@ -46,5 +46,22 @@
     <script src="/static/jquery/jquery.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/site.js"></script>
+    <script>
+        $(doucment).ready(() -> {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            console.log(tz);
+            $.ajax({
+                url: "/home/client_tz_set",
+                method: "POST",
+                data: {timezone: tz},
+                success: function(data, status, xhr) {
+                    console.log('status: ' + status + ', data: ' + data);
+                },
+                error: function (jqXhr, textStatus, errorMessage) {
+                    console.log('Error' + errorMessage);
+                }
+            });
+        });
+            </script>
 </body>
 </html>

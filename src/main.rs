@@ -1,4 +1,6 @@
-use actix_web::{middleware::Logger, web::Data, App, HttpServer};
+use actix_session::storage::RedisActorSessionStore;
+use actix_session::SessionMiddleware;
+use actix_web::{cookie::Key, middleware::Logger, web::Data, App, HttpServer};
 use dotenvy::dotenv;
 use tera::Tera;
 
@@ -44,9 +46,15 @@ async fn main() -> std::io::Result<()> {
     let sqlitedb_pool: connection::SqliteConnectionPool =
         connection::establish_connection(&app_config);
 
+    let redis_key_from_string: Key = Key::from(app_config.redis_secret_key.as_bytes());
+
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::new("%r %s"))
+            .wrap(SessionMiddleware::new(
+                RedisActorSessionStore::new(app_config.redis_url.to_owned()),
+                redis_key_from_string.clone(),
+            ))
             .app_data(Data::new(app_config.clone()))
             .app_data(Data::new(tera.clone()))
             .app_data(Data::new(sqlitedb_pool.clone()))
