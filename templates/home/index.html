@@ -22,7 +22,9 @@
                      <!-- END profile-header-img -->
                      <!-- BEGIN profile-header-info -->
                      <div class="profile-header-info">
-                        <h4 class="m-t-10 m-b-5">{{ current_user.username }}</h4>
+                        <h4 class="m-t-10 m-b-5">
+                            <a href="/users/profile/{{current_user.id}}">{{ current_user.username }}</a>
+                        </h4>
                         <p class="m-b-10">UXUI + Frontend Developer</p>
                         <a href="/users/profile/edit" class="btn btn-sm btn-info mb-2">Edit Profile</a>
                      </div>
@@ -45,21 +47,24 @@
             <div class="post-content">
                 <div class="row">
                     <div class="col-sm-10">
+                        {% for user_post in users_posts %}
                         <div class="panel panel-white post">
                             <div class="post-heading">
                                 <div class="pull-left image">
-                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-circle avatar" alt="user profile image">
+                                    <img src="{{user_post.profile_image}}" class="img-circle avatar" alt="user profile image">
                                 </div>
                                 <div class="pull-left meta">
                                     <div class="title h5">
-                                        <a href="#"><b>John Doe</b></a>
+                                        <a href="/users/profile/{{user_post.uid}}"><b>{{user_post.username}}</b></a>
                                         made a post.
                                     </div>
-                                    <h6 class="text-muted time">1 minute ago</h6>
+                                    <h6 class="text-muted time created_on">{{user_post.created_on | humanize }} at {{user_post.created_on | date(format="%H:%M %P", timezone="Asia/Kathmandu")}}</h6>
                                 </div>
                             </div> 
                             <div class="post-description"> 
-                                <p>Anyone who is interested in helping out with the Mark &amp; Markson dinner party, please let me know before the week is over.</p>
+                                <p class="a-post-title">{{user_post.title}}</p>
+                                <p class="a-post-content">{{user_post.content}}</p>
+                                <hr/>
                                 <div class="stats">
                                     <a href="javascript:void(0);" class="btn btn-default stat-item">
                                         <i class="fa fa-thumbs-up icon"></i>2
@@ -118,6 +123,7 @@
                                 </ul>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
