@@ -1,3 +1,4 @@
+use diesel::Queryable;
 use serde::{Deserialize, Serialize};
 
 use crate::models::user::User;
@@ -12,7 +13,7 @@ pub struct UserCreateVM {
     pub profile_img: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Queryable)]
 pub struct UserVM {
     pub id: i32,
     pub username: String,
@@ -33,4 +34,9 @@ impl UserVM {
 pub struct UserProfileVM {
     pub user: UserVM,
     pub posts: Vec<PostVM>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserTimeZone {
+    pub timezone: String,
 }

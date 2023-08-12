@@ -4,14 +4,19 @@ use diesel::prelude::*;
 use tera::{Context, Tera};
 
 use crate::{
+    auth::jwt_middleware::JwtMiddleware,
     db::connection::{get_db_connection_from_pool, SqliteConnectionPool},
     utils::session_helper::set_client_timezone,
-    viewmodels::post::UsersPostsVM,
+    viewmodels::{
+        post::UsersPostsVM,
+        user::{UserTimeZone, UserVM},
+    },
 };
 
 pub async fn index(
     tera: web::Data<Tera>,
     db_pool: web::Data<SqliteConnectionPool>,
+    auth: JwtMiddleware,
 ) -> impl Responder {
     use crate::schema::posts;
     use crate::schema::posts::dsl::*;
@@ -44,15 +49,39 @@ pub async fn index(
         }
     };
 
-    //insert the vec to context
+    //get the user id of currently logged in user
+    let logged_in_user_id: i32 = auth.user_id.parse().expect("couldn't parse user id");
+
+    //get the user from db
+    let current_user: UserVM = match users
+        .find(logged_in_user_id)
+        .select((users::id, users::username, users::profile_image))
+        .first(&mut get_db_connection_from_pool(&db_pool).unwrap())
+        .optional()
+    {
+        Ok(usr) => match usr {
+            Some(u) => u,
+            None => return HttpResponse::NotFound().finish(),
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ops! something went wrong: {}", e))
+        }
+    };
+
+    //insert the logged in user to context
     let mut context: Context = tera::Context::new();
+    context.insert("current_user", &current_user);
     context.insert("users_posts", &users_posts);
     //render the template
     let rendered = match tera.render("home/index.html", &context) {
         Ok(t) => t,
         Err(e) => {
-            println!("Error while loading template in handler: {}", e);
-            std::process::exit(1);
+            return HttpResponse::InternalServerError().body(format!(
+                "Error! something went wrong: {} \nThe data is:\n {}",
+                e,
+                serde_json::to_string(&users_posts).unwrap()
+            ))
         }
     };
     HttpResponse::Ok()
@@ -60,14 +89,18 @@ pub async fn index(
         .body(rendered)
 }
 
-pub async fn privacy(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
+pub async fn privacy() -> impl Responder {
+    HttpResponse::Ok().body("Hello from privacy")
 }
 
-pub async fn client_tz_set(client_tz: String, session: Session) -> impl Responder {
-    match set_client_timezone(client_tz, session).await {
+pub async fn client_tz_set(client_tz: web::Json<UserTimeZone>, session: Session) -> impl Responder {
+    println!("Hit with timezone: {}", client_tz.timezone);
+    match set_client_timezone(client_tz.timezone.to_owned(), session).await {
         Err(e) => HttpResponse::InternalServerError()
             .body(format!("Error while setting client timezone: {}", e)),
-        Ok(_) => HttpResponse::Ok().finish(),
+        Ok(_) => {
+            println!("Insertion successfull");
+            HttpResponse::Ok().finish()
+        }
     }
 }

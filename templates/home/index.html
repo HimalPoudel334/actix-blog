@@ -17,12 +17,12 @@
                   <div class="profile-header-content">
                      <!-- BEGIN profile-header-img -->
                      <div class="profile-header-img">
-                        <img src="{{user_profile.user.profile_image}}" alt="">
+                        <img src="{{current_user.profile_img}}" alt="">
                      </div>
                      <!-- END profile-header-img -->
                      <!-- BEGIN profile-header-info -->
                      <div class="profile-header-info">
-                        <h4 class="m-t-10 m-b-5">{{ user_profile.user.username }}</h4>
+                        <h4 class="m-t-10 m-b-5">{{ current_user.username }}</h4>
                         <p class="m-b-10">UXUI + Frontend Developer</p>
                         <a href="/users/profile/edit" class="btn btn-sm btn-info mb-2">Edit Profile</a>
                      </div>
@@ -31,92 +31,126 @@
                   <!-- END profile-header-content -->
                   <!-- BEGIN profile-header-tab -->
                   <ul class="profile-header-tab nav nav-tabs">
-                     <li class="nav-item"><a href="https://www.bootdey.com/snippets/view/bs4-profile-with-timeline-posts" target="__blank" class="nav-link_">POSTS</a></li>
+                     <li class="nav-item"><a href="https://www.bootdey.com/snippets/view/bs4-profile-with-timeline-posts" target="__blank" class="nav-link_ active show">POSTS</a></li>
                      <li class="nav-item"><a href="https://www.bootdey.com/snippets/view/bs4-profile-about" target="__blank" class="nav-link_">ABOUT</a></li>
                      <li class="nav-item"><a href="https://www.bootdey.com/snippets/view/profile-photos" target="__blank" class="nav-link_">PHOTOS</a></li>
                      <li class="nav-item"><a href="https://www.bootdey.com/snippets/view/profile-videos" target="__blank" class="nav-link_">VIDEOS</a></li>
-                     <li class="nav-item"><a href="https://www.bootdey.com/snippets/view/bs4-profile-friend-list" target="__blank" class="nav-link_ active show">FRIENDS</a></li>
+                     <li class="nav-item"><a href="https://www.bootdey.com/snippets/view/bs4-profile-friend-list" target="__blank" class="nav-link_">FRIENDS</a></li>
                   </ul>
                   <!-- END profile-header-tab -->
                </div>
             </div>
             <!-- end profile -->
             <!-- begin profile-content -->
-            <div class="profile-content">
-               <!-- begin tab-content -->
-               <div class="tab-content p-0">
-                  <!-- begin #profile-post tab -->
-                  <div class="tab-pane fade active show" id="profile-post">
-                     <!-- begin timeline -->
-                     <ul class="timeline">
-                        {% for user_post in users_posts %}
-                           <!-- begin timeline-body -->
-                           <div class="timeline-body">
-                              <div class="timeline-header">
-                                 <span class="userimage"><img src="{{user_post.profile_image}}" alt=""></span>
-                                 <span class="username"><a href="javascript:;">{{user_post.username}}</a> <small></small></span>
-                                 <span class="pull-right text-muted">18 Views</span>
-                              </div>
-                              <div class="timeline-content">
-                                 <h4>{{ user_post.title }}</h4>
-                                 <p>{{ user_post.content }}</p>
-                              </div>
-                              <div class="timeline-likes">
-                                 <div class="stats-right">
-                                    <span class="stats-text">259 Shares</span>
-                                    <span class="stats-text">21 Comments</span>
-                                 </div>
-                                 <div class="stats">
-                                    <span class="fa-stack fa-fw stats-icon">
-                                    <i class="fa fa-circle fa-stack-2x text-danger"></i>
-                                    <i class="fa fa-heart fa-stack-1x fa-inverse t-plus-1"></i>
+            <div class="post-content">
+                <div class="row">
+                    <div class="col-sm-10">
+                        <div class="panel panel-white post">
+                            <div class="post-heading">
+                                <div class="pull-left image">
+                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-circle avatar" alt="user profile image">
+                                </div>
+                                <div class="pull-left meta">
+                                    <div class="title h5">
+                                        <a href="#"><b>John Doe</b></a>
+                                        made a post.
+                                    </div>
+                                    <h6 class="text-muted time">1 minute ago</h6>
+                                </div>
+                            </div> 
+                            <div class="post-description"> 
+                                <p>Anyone who is interested in helping out with the Mark &amp; Markson dinner party, please let me know before the week is over.</p>
+                                <div class="stats">
+                                    <a href="javascript:void(0);" class="btn btn-default stat-item">
+                                        <i class="fa fa-thumbs-up icon"></i>2
+                                    </a>
+                                    <a href="javascript:void(0);" class="btn btn-default stat-item">
+                                        <i class="fa fa-share icon"></i>12
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="post-footer">
+                                <div class="input-group"> 
+                                    <input class="form-control" placeholder="Add a comment" type="text">
+                                    <span class="input-group-addon ml-2">
+                                        <button type="submit" class="btn btn-primary"><i class="fa fa-edit"></i> Comment</button>  
                                     </span>
-                                    <span class="fa-stack fa-fw stats-icon">
-                                    <i class="fa fa-circle fa-stack-2x text-primary"></i>
-                                    <i class="fa fa-thumbs-up fa-stack-1x fa-inverse"></i>
-                                    </span>
-                                    <span class="stats-total">4.3k</span>
-                                 </div>
-                              </div>
-                              <div class="timeline-footer">
-                                 <a href="javascript:;" class="m-r-15 text-inverse-lighter"><i class="fa fa-thumbs-up fa-fw fa-lg m-r-3"></i> Like</a>
-                                 <a href="javascript:;" class="m-r-15 text-inverse-lighter"><i class="fa fa-comments fa-fw fa-lg m-r-3"></i> Comment</a> 
-                                 <a href="javascript:;" class="m-r-15 text-inverse-lighter"><i class="fa fa-share fa-fw fa-lg m-r-3"></i> Share</a>
-                              </div>
-                              <div class="timeline-comment-box">
-                                 <div class="user"><img src="{{user_post.profile_image}}"></div>
-                                 <div class="input">
-                                    <form action="">
-                                       <div class="input-group">
-                                          <input type="text" class="form-control rounded-corner" placeholder="Write a comment...">
-                                          <span class="input-group-btn p-l-10">
-                                          <button class="btn btn-primary f-s-12 rounded-corner" type="button">Comment</button>
-                                          </span>
-                                       </div>
-                                    </form>
-                                 </div>
-                              </div>
-                           </div>
-                           <!-- end timeline-body -->
-                        </li>
-                        {% endfor %}
-                        <li>
-                             <!-- begin timeline-body -->
-                           <div class="timeline-body">
-                              Loading...
-                           </div>
-                           <!-- begin timeline-body -->
-                        </li>
-                     </ul>
-                     <!-- end timeline -->
-                  </div>
-                  <!-- end #profile-post tab -->
-               </div>
-               <!-- end tab-content -->
+                                </div>
+                                <ul class="comments-list">
+                                    <li class="comment">
+                                        <a class="pull-left" href="javascript:void(0);">
+                                            <img class="avatar" src="https://bootdey.com/img/Content/avatar/avatar3.png" alt="avatar">
+                                        </a>
+                                        <div class="comment-body">
+                                            <div class="comment-heading">
+                                                <h4 class="user">Gavino Free</h4>
+                                                <h5 class="time">5 minutes ago</h5>
+                                            </div>
+                                            <p>Sure, I'd help out.</p>
+                                        </div>
+                                        <ul class="comments-list">
+                                            <li class="comment">
+                                                <a class="pull-left" href="javascript:void(0);">
+                                                    <img class="avatar" src="https://bootdey.com/img/Content/avatar/avatar4.png" alt="avatar">
+                                                </a>
+                                                <div class="comment-body">
+                                                    <div class="comment-heading">
+                                                        <h4 class="user">John Doe</h4>
+                                                        <h5 class="time">3 minutes ago</h5>
+                                                    </div>
+                                                    <p>I will email you the details.</p>
+                                                </div>
+                                            </li> 
+                                            <li class="comment">
+                                                <a class="pull-left" href="javascript:void(0);">
+                                                    <img class="avatar" src="https://bootdey.com/img/Content/avatar/avatar5.png" alt="avatar">
+                                                </a>
+                                                <div class="comment-body">
+                                                    <div class="comment-heading">
+                                                        <h4 class="user">John Doe</h4>
+                                                        <h5 class="time">3 minutes ago</h5>
+                                                    </div>
+                                                    <p>Ok, cool.</p>
+                                                </div>
+                                            </li> 
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <!-- end profile-content -->
          </div>
       </div>
    </div>
+   <!-- end profile-content -->
+</div>
+</div>
+</div>
 </div>
 {% endblock content %}
+
+{% block script %}
+   <script type="text/javascript">
+      $(document).ready(() => {
+         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+         const data = {
+            timezone: tz
+         };
+         console.log({data: JSON.stringify(data)});
+         $.ajax({
+            url: "/home/set-timezone",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data), 
+            success: function() {
+               console.log("Success");
+            },
+            error: function (error) {
+               console.log({error: error})
+            }
+         });
+      });
+   </script>
+{% endblock %}

@@ -1,4 +1,4 @@
-use diesel::{Queryable, Selectable};
+use diesel::Queryable;
 use serde::{Deserialize, Serialize};
 
 use crate::models::post::Post;
@@ -30,7 +30,7 @@ impl PostVM {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable)]
+#[derive(Debug, Serialize, Deserialize, Queryable)]
 pub struct UsersPostsVM {
     pub uid: i32,
     pub username: String,

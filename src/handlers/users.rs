@@ -175,9 +175,9 @@ pub async fn edit_profile_get(
     let user_id: i32 = auth.user_id.parse().expect("couldn't parse user id");
 
     //get the user from db
-    let user: User = match users
+    let user_vm: UserVM = match users
         .find(user_id)
-        .select(User::as_select())
+        .select((id, username, profile_image))
         .first(&mut get_db_connection_from_pool(&db_pool).unwrap())
         .optional()
     {
@@ -190,9 +190,6 @@ pub async fn edit_profile_get(
                 .body(format!("Ops! something went wrong: {}", e))
         }
     };
-
-    //create the vm
-    let user_vm: UserVM = UserVM::from(&user);
 
     //load the vm into context
     let mut context = tera::Context::new();
