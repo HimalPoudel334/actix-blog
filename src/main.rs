@@ -48,6 +48,9 @@ async fn main() -> std::io::Result<()> {
 
     let redis_key_from_string: Key = Key::from(app_config.redis_secret_key.as_bytes());
 
+    //open the default url in the default web browser
+    open::that("http://localhost:8000/home")?;
+
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::new("%r %s"))

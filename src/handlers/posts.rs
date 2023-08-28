@@ -88,10 +88,7 @@ pub async fn edit_post_get(
     use crate::schema::posts::dsl::*;
     let (pid,) = post_id.into_inner();
 
-    let uid: i32 = jwt_middleware
-        .user_id
-        .parse()
-        .expect("Error while parsing user id");
+    let uid: i32 = jwt_middleware.user_id;
 
     let post: Post = match posts
         .filter(id.eq(pid))
@@ -141,10 +138,8 @@ pub async fn edit_post_post(
     post_vm: web::Form<PostVM>,
 ) -> impl Responder {
     use crate::schema::posts::dsl::*;
-    let uid: i32 = jwt_middleware
-        .user_id
-        .parse()
-        .expect("Error while parsing user id");
+
+    let uid: i32 = jwt_middleware.user_id;
 
     //get the user from db
     let post: Post = match posts

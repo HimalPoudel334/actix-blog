@@ -1,7 +1,7 @@
 use actix_web::{
-    cookie::{time::Duration as ActixWebDuration, Cookie},
+    cookie::{time::Duration as ActixWebDuration, Cookie, SameSite},
     http::header::ContentType,
-    web, HttpResponse, Responder,
+    web, HttpMessage, HttpRequest, HttpResponse, Responder,
 };
 use diesel::prelude::*;
 use serde_json::json;
@@ -31,6 +31,7 @@ pub async fn login_get(tera: web::Data<Tera>) -> impl Responder {
 }
 
 pub async fn login_post(
+    req: HttpRequest,
     db_pool: web::Data<SqliteConnectionPool>,
     app_config: web::Data<ApplicationConfiguration>,
     login_vm: web::Form<LoginVM>,
@@ -47,7 +48,7 @@ pub async fn login_post(
             Some(u) => u,
             None => {
                 return HttpResponse::BadRequest()
-                    .body(" user not exist: Invalid username or password")
+                    .body("user not exist: Invalid username or password")
             }
         },
         Err(e) => {
@@ -70,13 +71,29 @@ pub async fn login_post(
     //set a cookie
     let cookie = Cookie::build("token", token.to_owned())
         .path("/")
+        .same_site(SameSite::Lax)
         .max_age(ActixWebDuration::new(60 * 60, 0))
         .http_only(true)
         .finish();
 
+    //check for return_url in request's extension
+    let return_url: String = req
+        .extensions()
+        .get::<String>()
+        .unwrap_or(&String::from(""))
+        .to_owned();
+
+    if return_url.is_empty() {
+        return HttpResponse::Ok()
+            .append_header((actix_web::http::header::LOCATION, "/home"))
+            .cookie(cookie)
+            .finish();
+    }
+
     HttpResponse::Ok()
+        .append_header((actix_web::http::header::LOCATION, return_url))
         .cookie(cookie)
-        .json(json!({"status": "success", "token": token}))
+        .finish()
 }
 
 pub async fn logout(_: JwtMiddleware) -> impl Responder {

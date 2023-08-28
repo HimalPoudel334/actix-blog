@@ -5,6 +5,7 @@ use serde::Serialize;
 pub struct ErrorResponse {
     pub status: String,
     pub message: String,
+    pub return_url: String,
 }
 
 impl fmt::Display for ErrorResponse {

@@ -30,6 +30,7 @@ pub fn app_routes(cfg: &mut web::ServiceConfig) {
     .service(
         web::scope("/home")
             .route("/privacy", web::get().to(home::privacy))
+            .route("/see-other", web::get().to(home::see_other))
             .route("/set-timezone", web::post().to(home::client_tz_set))
             .route("", web::get().to(home::index)),
     );

@@ -1,5 +1,8 @@
 use actix_session::Session;
-use actix_web::{http::header::ContentType, web, HttpResponse, Responder};
+use actix_web::{
+    http::header::{ContentType, HeaderValue, LOCATION},
+    web, HttpResponse, Responder,
+};
 use diesel::prelude::*;
 use tera::{Context, Tera};
 
@@ -50,7 +53,7 @@ pub async fn index(
     };
 
     //get the user id of currently logged in user
-    let logged_in_user_id: i32 = auth.user_id.parse().expect("couldn't parse user id");
+    let logged_in_user_id: i32 = auth.user_id;
 
     //get the user from db
     let current_user: UserVM = match users
@@ -91,6 +94,12 @@ pub async fn index(
 
 pub async fn privacy() -> impl Responder {
     HttpResponse::Ok().body("Hello from privacy")
+}
+
+pub async fn see_other() -> impl Responder {
+    HttpResponse::SeeOther()
+        .append_header((LOCATION, HeaderValue::from_static("/auth/login")))
+        .finish()
 }
 
 pub async fn client_tz_set(client_tz: web::Json<UserTimeZone>, session: Session) -> impl Responder {

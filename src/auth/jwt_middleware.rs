@@ -8,12 +8,11 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use std::future::{ready, Ready};
 
 pub struct JwtMiddleware {
-    pub user_id: String,
+    pub user_id: i32,
 }
 
 impl FromRequest for JwtMiddleware {
     type Error = ActixWebError;
-
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(
@@ -23,6 +22,9 @@ impl FromRequest for JwtMiddleware {
         let app_config = req
             .app_data::<web::Data<ApplicationConfiguration>>()
             .unwrap();
+
+        //get the path of the request
+        let path: String = req.path().to_owned();
 
         //get the cookie and extract the token
         let token = req
@@ -39,6 +41,7 @@ impl FromRequest for JwtMiddleware {
             let json_error = ErrorResponse {
                 status: "fail".to_string(),
                 message: "You are not logged in, please provide token".to_string(),
+                return_url: "/auth/login".to_string(),
             };
             return ready(Err(ErrorUnauthorized(json_error)));
         }
@@ -54,19 +57,19 @@ impl FromRequest for JwtMiddleware {
                 let json_error = ErrorResponse {
                     status: "fail".to_string(),
                     message: "Invalid token".to_string(),
+                    return_url: "/auth/login".to_string(),
                 };
                 return ready(Err(ErrorUnauthorized(json_error)));
             }
         };
 
         //if decoding is successful, parse the sub claim (this claim stores the user id)
-        let user_id: &str = claims.sub.as_str();
+        let user_id: i32 = claims.sub.as_str().parse().expect("Couldn't parse user_id");
 
         //insert the user id to request header
-        req.extensions_mut().insert::<String>(user_id.to_owned());
+        req.extensions_mut().insert::<i32>(user_id);
+        req.extensions_mut().insert::<String>(path);
 
-        ready(Ok(JwtMiddleware {
-            user_id: user_id.to_owned(),
-        }))
+        ready(Ok(JwtMiddleware { user_id }))
     }
 }

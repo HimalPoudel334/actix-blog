@@ -172,7 +172,7 @@ pub async fn edit_profile_get(
 ) -> impl Responder {
     use crate::schema::users::dsl::*;
     //get the user id of currently logged in user
-    let user_id: i32 = auth.user_id.parse().expect("couldn't parse user id");
+    let user_id: i32 = auth.user_id;
 
     //get the user from db
     let user_vm: UserVM = match users
@@ -216,7 +216,7 @@ pub async fn edit_profile_post(
     use crate::schema::users::dsl::*;
 
     //get the user id of currently logged in user
-    let user_id: i32 = auth.user_id.parse().expect("couldn't parse user id");
+    let user_id: i32 = auth.user_id;
     if user_id != user_vm.id {
         return HttpResponse::BadRequest().body("Nonsese! trying to edit others data");
     }
