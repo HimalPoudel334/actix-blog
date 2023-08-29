@@ -314,6 +314,7 @@ dependencies = [
  "argon2",
  "chrono",
  "chrono-humanize",
+ "derive_more",
  "diesel",
  "dotenvy",
  "env_logger",

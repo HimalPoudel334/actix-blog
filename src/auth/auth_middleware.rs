@@ -1,13 +1,12 @@
 /*use actix_web::{
-    body::BoxBody,
     dev::{Service, ServiceRequest, ServiceResponse, Transform},
     http::{
         self,
         header::{HeaderValue, LOCATION},
     },
-    web, Error, HttpMessage, HttpResponse,
+    web, Error, HttpResponse,
 };
-use futures::future::{ready, BoxFuture};
+use futures::future::{ok, ready};
 use futures::{future::Ready, Future};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use std::pin::Pin;
@@ -36,17 +35,6 @@ where
 pub struct AuthMiddleware<S> {
     service: S,
 }
-
-/*impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-    B: 'static,
-{
-    type Response = ServiceResponse<B>;
-    type Error = Error;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
-*/
 
 impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
 where
@@ -87,8 +75,7 @@ where
                 Ok(req.into_response(
                     HttpResponse::SeeOther()
                         .append_header((LOCATION, HeaderValue::from_static("/auth/login")))
-                        .finish()
-                        .into_body(),
+                        .finish(),
                 ))
             });
         }

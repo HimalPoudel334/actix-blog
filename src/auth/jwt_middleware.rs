@@ -1,11 +1,36 @@
+use crate::config::ApplicationConfiguration;
 use crate::utils::token_helper::TokenClaims;
-use crate::{config::ApplicationConfiguration, responses::error::ErrorResponse};
-use actix_web::{
-    error::ErrorUnauthorized, http, web, Error as ActixWebError, FromRequest, HttpMessage,
-};
+use actix_web::http::header::LOCATION;
+use actix_web::{http, web, Error as ActixWebError, FromRequest, HttpMessage};
+use actix_web::{HttpResponse, ResponseError};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 
+use derive_more::Display;
 use std::future::{ready, Ready};
+
+#[derive(Debug, Display)]
+pub enum ServiceError {
+    #[display(fmt = "BadRequest: {_0}")]
+    BadRequest(String),
+
+    #[display(fmt = "Unauthorized: {_0}")]
+    Unauthorized(String),
+}
+
+// impl ResponseError trait allows to convert our errors into http responses with appropriate data
+impl ResponseError for ServiceError {
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            ServiceError::BadRequest(ref message) => HttpResponse::BadRequest().json(message),
+            ServiceError::Unauthorized(ref path) => HttpResponse::SeeOther()
+                .append_header((
+                    LOCATION,
+                    format!("/auth/login?return_url={}", path).as_str(),
+                ))
+                .finish(),
+        }
+    }
+}
 
 pub struct JwtMiddleware {
     pub user_id: i32,
@@ -24,7 +49,9 @@ impl FromRequest for JwtMiddleware {
             .unwrap();
 
         //get the path of the request
-        let path: String = req.path().to_owned();
+        let path: &str = req.path();
+        println!("requested path is {}", path);
+        req.extensions_mut().insert::<String>(path.to_owned());
 
         //get the cookie and extract the token
         let token = req
@@ -38,12 +65,7 @@ impl FromRequest for JwtMiddleware {
 
         //if token is not there, then the request is unauthenticated
         if token.is_none() {
-            let json_error = ErrorResponse {
-                status: "fail".to_string(),
-                message: "You are not logged in, please provide token".to_string(),
-                return_url: "/auth/login".to_string(),
-            };
-            return ready(Err(ErrorUnauthorized(json_error)));
+            return ready(Err(ServiceError::Unauthorized(path.into()).into()));
         }
 
         //if token is there, decode the token to TokenClaims struct using the secret key of .env file
@@ -54,21 +76,14 @@ impl FromRequest for JwtMiddleware {
         ) {
             Ok(token_claims) => token_claims.claims,
             Err(_) => {
-                let json_error = ErrorResponse {
-                    status: "fail".to_string(),
-                    message: "Invalid token".to_string(),
-                    return_url: "/auth/login".to_string(),
-                };
-                return ready(Err(ErrorUnauthorized(json_error)));
+                return ready(Err(ServiceError::BadRequest("Invalid token".into()).into()));
             }
         };
 
         //if decoding is successful, parse the sub claim (this claim stores the user id)
         let user_id: i32 = claims.sub.as_str().parse().expect("Couldn't parse user_id");
-
         //insert the user id to request header
         req.extensions_mut().insert::<i32>(user_id);
-        req.extensions_mut().insert::<String>(path);
 
         ready(Ok(JwtMiddleware { user_id }))
     }

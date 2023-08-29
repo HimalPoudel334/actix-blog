@@ -1,9 +1,11 @@
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie, SameSite},
     http::header::ContentType,
-    web, HttpMessage, HttpRequest, HttpResponse, Responder,
+    Responder,
 };
+use actix_web::{web, HttpResponse};
 use diesel::prelude::*;
+use serde::Deserialize;
 use serde_json::json;
 use tera::Tera;
 
@@ -16,8 +18,17 @@ use crate::{
     viewmodels::login::LoginVM,
 };
 
-pub async fn login_get(tera: web::Data<Tera>) -> impl Responder {
-    let context = tera::Context::new();
+#[derive(Deserialize)]
+pub struct ReturnPath {
+    pub return_url: String,
+}
+
+pub async fn login_get(
+    tera: web::Data<Tera>,
+    return_path: web::Query<ReturnPath>,
+) -> impl Responder {
+    let mut context = tera::Context::new();
+    context.insert("return_url", &return_path.return_url);
     let rendered = match tera.render("auth/login.html", &context) {
         Ok(t) => t,
         Err(e) => {
@@ -31,10 +42,10 @@ pub async fn login_get(tera: web::Data<Tera>) -> impl Responder {
 }
 
 pub async fn login_post(
-    req: HttpRequest,
     db_pool: web::Data<SqliteConnectionPool>,
     app_config: web::Data<ApplicationConfiguration>,
     login_vm: web::Form<LoginVM>,
+    return_path: web::Query<ReturnPath>,
 ) -> impl Responder {
     use crate::schema::users::dsl::*;
 
@@ -76,22 +87,20 @@ pub async fn login_post(
         .http_only(true)
         .finish();
 
-    //check for return_url in request's extension
-    let return_url: String = req
-        .extensions()
-        .get::<String>()
-        .unwrap_or(&String::from(""))
-        .to_owned();
+    println!("The return url is {}", return_path.return_url);
 
-    if return_url.is_empty() {
-        return HttpResponse::Ok()
+    if return_path.return_url.is_empty() {
+        return HttpResponse::SeeOther()
             .append_header((actix_web::http::header::LOCATION, "/home"))
             .cookie(cookie)
             .finish();
     }
 
-    HttpResponse::Ok()
-        .append_header((actix_web::http::header::LOCATION, return_url))
+    HttpResponse::SeeOther()
+        .append_header((
+            actix_web::http::header::LOCATION,
+            return_path.return_url.to_owned(),
+        ))
         .cookie(cookie)
         .finish()
 }
