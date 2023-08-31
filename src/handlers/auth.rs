@@ -1,6 +1,6 @@
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie, SameSite},
-    http::header::ContentType,
+    http::header::{ContentType, LOCATION},
     Responder,
 };
 use actix_web::{web, HttpResponse};
@@ -25,10 +25,12 @@ pub struct ReturnPath {
 
 pub async fn login_get(
     tera: web::Data<Tera>,
-    return_path: web::Query<ReturnPath>,
+    return_path: Option<web::Query<ReturnPath>>,
 ) -> impl Responder {
     let mut context = tera::Context::new();
-    context.insert("return_url", &return_path.return_url);
+    if return_path.is_some() {
+        context.insert("return_url", &return_path.unwrap().return_url);
+    }
     let rendered = match tera.render("auth/login.html", &context) {
         Ok(t) => t,
         Err(e) => {
@@ -45,7 +47,7 @@ pub async fn login_post(
     db_pool: web::Data<SqliteConnectionPool>,
     app_config: web::Data<ApplicationConfiguration>,
     login_vm: web::Form<LoginVM>,
-    return_path: web::Query<ReturnPath>,
+    return_path: Option<web::Query<ReturnPath>>,
 ) -> impl Responder {
     use crate::schema::users::dsl::*;
 
@@ -87,20 +89,16 @@ pub async fn login_post(
         .http_only(true)
         .finish();
 
-    println!("The return url is {}", return_path.return_url);
-
-    if return_path.return_url.is_empty() {
+    if return_path.is_some() {
+        let ret_url = &return_path.unwrap().return_url;
         return HttpResponse::SeeOther()
-            .append_header((actix_web::http::header::LOCATION, "/home"))
+            .append_header((actix_web::http::header::LOCATION, ret_url.to_owned()))
             .cookie(cookie)
             .finish();
     }
 
     HttpResponse::SeeOther()
-        .append_header((
-            actix_web::http::header::LOCATION,
-            return_path.return_url.to_owned(),
-        ))
+        .append_header((actix_web::http::header::LOCATION, "/home"))
         .cookie(cookie)
         .finish()
 }
@@ -112,7 +110,8 @@ pub async fn logout(_: JwtMiddleware) -> impl Responder {
         .http_only(true)
         .finish();
 
-    HttpResponse::Ok()
+    HttpResponse::SeeOther()
+        .append_header((LOCATION, "/auth/login"))
         .cookie(cookie)
         .json(json!({"status": "success"}))
 }
