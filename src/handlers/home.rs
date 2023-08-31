@@ -1,8 +1,5 @@
 use actix_session::Session;
-use actix_web::{
-    http::header::{ContentType, HeaderValue, LOCATION},
-    web, HttpResponse, Responder,
-};
+use actix_web::{http::header::ContentType, web, HttpResponse, Responder};
 use diesel::prelude::*;
 use tera::{Context, Tera};
 
@@ -96,12 +93,6 @@ pub async fn privacy() -> impl Responder {
     HttpResponse::Ok().body("Hello from privacy")
 }
 
-pub async fn see_other() -> impl Responder {
-    HttpResponse::SeeOther()
-        .append_header((LOCATION, HeaderValue::from_static("/auth/login")))
-        .finish()
-}
-
 pub async fn client_tz_set(client_tz: web::Json<UserTimeZone>, session: Session) -> impl Responder {
     println!("Hit with timezone: {}", client_tz.timezone);
     match set_client_timezone(client_tz.timezone.to_owned(), session).await {
@@ -112,4 +103,19 @@ pub async fn client_tz_set(client_tz: web::Json<UserTimeZone>, session: Session)
             HttpResponse::Ok().finish()
         }
     }
+}
+
+pub async fn error_not_found(tera: web::Data<Tera>) -> impl Responder {
+    //render the template
+    let context = tera::Context::new();
+    let rendered = match tera.render("home/404_not_found.html", &context) {
+        Ok(t) => t,
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ops ! something went wrong: {}", e))
+        }
+    };
+    HttpResponse::NotFound()
+        .content_type(ContentType::html())
+        .body(rendered)
 }

@@ -1,6 +1,11 @@
 use actix_session::storage::RedisActorSessionStore;
 use actix_session::SessionMiddleware;
-use actix_web::{cookie::Key, middleware::Logger, web::Data, App, HttpServer};
+use actix_web::{
+    cookie::Key,
+    middleware::Logger,
+    web::{self, Data},
+    App, HttpServer,
+};
 use dotenvy::dotenv;
 use tera::Tera;
 
@@ -63,7 +68,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(sqlitedb_pool.clone()))
             .configure(routes::app_routes)
             .service(actix_files::Files::new("/static", "./static")) //serve the static files like
-                                                                     //css, js and images
+            .default_service(web::to(handlers::home::error_not_found))
+        //css, js and images
     })
     .bind(("localhost", 8000))
     .expect("Could not bind to port 8000")
