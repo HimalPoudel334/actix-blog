@@ -150,7 +150,7 @@ pub async fn user_profile_get(
     context.insert("user_profile", &user_profile_vm);
 
     //tera template
-    let rendered = match tera.render("user/profile.html", &context) {
+    let rendered = match tera.render("user/profile_partial.html", &context) {
         Ok(t) => t,
         Err(e) => {
             return HttpResponse::InternalServerError().body(format!(
@@ -196,7 +196,7 @@ pub async fn edit_profile_get(
     context.insert("user_vm", &user_vm);
 
     //render the template
-    let rendered = match tera.render("user/edit.html", &context) {
+    let rendered = match tera.render("user/edit_partial.html", &context) {
         Ok(t) => t,
         Err(e) => {
             return HttpResponse::InternalServerError()

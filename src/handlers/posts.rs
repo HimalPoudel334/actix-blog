@@ -6,28 +6,56 @@ use crate::{
     auth::jwt_middleware::JwtMiddleware,
     db::connection::{get_db_connection_from_pool, SqliteConnectionPool},
     models::post::{NewPost, Post},
-    viewmodels::post::{PostCreateVM, PostVM},
+    viewmodels::post::{PostCreateVM, PostVM, UsersPostsVM},
 };
 
 pub async fn index(
     db_pool: web::Data<SqliteConnectionPool>,
     tera: web::Data<Tera>,
 ) -> impl Responder {
+    use crate::schema::posts;
     use crate::schema::posts::dsl::*;
+    use crate::schema::users;
+    use crate::schema::users::dsl::*;
 
-    //let all posts
-    let posts_vec = posts
-        .load::<Post>(&mut get_db_connection_from_pool(&db_pool).unwrap())
-        .unwrap();
+    //here we want to all the posts of our all users
+    let users_posts: Vec<UsersPostsVM> = match posts
+        .inner_join(users)
+        .select((
+            users::id,
+            users::username,
+            users::profile_image,
+            posts::id,
+            posts::title,
+            posts::content,
+            posts::created_on,
+            posts::user_id,
+        ))
+        .load::<UsersPostsVM>(&mut get_db_connection_from_pool(&db_pool).unwrap())
+        .optional()
+    {
+        Ok(user_posts) => match user_posts {
+            Some(up) => up,
+            None => Vec::<UsersPostsVM>::new(),
+        },
+        Err(err) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ops! something went wrong: {}", err))
+        }
+    };
 
-    let mut context = tera::Context::new();
-    context.insert("posts", &posts_vec);
-
+    //insert the logged in user to context
+    let mut context: Context = tera::Context::new();
+    context.insert("users_posts", &users_posts);
+    //render the template
     let rendered = match tera.render("post/index.html", &context) {
         Ok(t) => t,
-        Err(err) => {
-            println!("Error while loading template: {}", err);
-            std::process::exit(1);
+        Err(e) => {
+            return HttpResponse::InternalServerError().body(format!(
+                "Error! something went wrong: {} \nThe data is:\n {}",
+                e,
+                serde_json::to_string(&users_posts).unwrap()
+            ))
         }
     };
 
