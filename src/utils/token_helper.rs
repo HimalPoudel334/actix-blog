@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, EncodingKey, Header};
+use jsonwebtoken::{
+    decode, encode, errors::Error, Algorithm, DecodingKey, EncodingKey, Header, Validation,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::config::ApplicationConfiguration;
@@ -25,11 +27,34 @@ pub fn create_jwt_token(user_id: i32, app_config: Arc<ApplicationConfiguration>)
         iat,
     };
 
+    encode_token(claims, app_config.jwt_secret.to_owned())
+}
+
+fn encode_token(claims: TokenClaims, jwt_secret: String) -> String {
+    let header: Header = Header {
+        alg: Algorithm::HS512,
+        ..Default::default()
+    };
+
     //encode the claims to create a token
     encode(
-        &Header::default(),
+        // &Header::default(),
+        &header,
         &claims,
-        &EncodingKey::from_secret(app_config.jwt_secret.as_ref()),
+        &EncodingKey::from_secret(jwt_secret.as_ref()),
     )
     .unwrap()
+}
+
+pub fn decode_token(jwt_token: String, jwt_secret: String) -> Result<TokenClaims, Error> {
+    let validation: Validation = Validation::new(Algorithm::HS512);
+
+    let token_claims = decode::<TokenClaims>(
+        &jwt_token,
+        &DecodingKey::from_secret(jwt_secret.as_ref()),
+        // &Validation::default(),
+        &validation,
+    )?;
+
+    Ok(token_claims.claims)
 }

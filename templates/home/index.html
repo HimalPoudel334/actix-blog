@@ -33,7 +33,7 @@
                   <!-- END profile-header-content -->
                   <!-- BEGIN profile-header-tab -->
                   <ul class="profile-header-tab nav nav-tabs">
-                     <li class="nav-item"><a href="/posts" class="nav-link_ active show shortlink">ALL POSTS</a></li>
+                     <li class="nav-item"><a id="initial" href="/posts" class="nav-link_ show shortlink">ALL POSTS</a></li>
                      <li class="nav-item"><a href="/users/profile/{{current_user.id}}" class="nav-link_ shortlink">PROFILE</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">ABOUT</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">PHOTOS</a></li>
@@ -83,7 +83,7 @@
             url: "/posts",
             method: "GET",
             success: function(data) {
-               console.log(data);
+               $("#initial").toggleClass("active");
                $("#dynamic-content").html(data);
            },
            error: function(error) {
@@ -94,14 +94,16 @@
 
       $(".shortlink").on("click", e => {
           e.preventDefault();
-          const href = $(e.target).attr("href");
+          const clickedLink = $(e.target);
+          const href = clickedLink.attr("href");
           console.log(href);
           if(href === "#" || href === undefined) return;
           $.ajax({
               url: href,
               method: "GET",
               success: function(data) {
-                  console.log(data);
+                  $(".shortlink").removeClass("active");
+                  clickedLink.toggleClass("active");
                   $("#dynamic-content").html(data);
               },
               error: function(error) {

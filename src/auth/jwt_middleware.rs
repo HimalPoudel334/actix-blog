@@ -1,9 +1,8 @@
 use crate::config::ApplicationConfiguration;
-use crate::utils::token_helper::TokenClaims;
+use crate::utils::token_helper::decode_token;
 use actix_web::http::header::LOCATION;
 use actix_web::{http, web, Error as ActixWebError, FromRequest, HttpMessage};
 use actix_web::{HttpResponse, ResponseError};
-use jsonwebtoken::{decode, DecodingKey, Validation};
 
 use derive_more::Display;
 use std::future::{ready, Ready};
@@ -69,14 +68,13 @@ impl FromRequest for JwtMiddleware {
         }
 
         //if token is there, decode the token to TokenClaims struct using the secret key of .env file
-        let claims = match decode::<TokenClaims>(
-            &token.unwrap(),
-            &DecodingKey::from_secret(app_config.jwt_secret.as_ref()),
-            &Validation::default(),
-        ) {
-            Ok(token_claims) => token_claims.claims,
-            Err(_) => {
-                return ready(Err(ServiceError::BadRequest("Invalid token".into()).into()));
+        let claims = match decode_token(token.unwrap(), app_config.jwt_secret.to_owned()) {
+            Ok(decoded) => decoded,
+            Err(e) => {
+                return ready(Err(ServiceError::BadRequest(
+                    format!("Invalid token: {}", e).into(),
+                )
+                .into()));
             }
         };
 
