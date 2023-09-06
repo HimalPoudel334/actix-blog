@@ -1,5 +1,6 @@
-use actix_web::{http::header::ContentType, web, HttpResponse, Responder};
+use actix_web::{http::header::ContentType, web::{self, Query}, HttpResponse, Responder};
 use diesel::prelude::*;
+use serde::Deserialize;
 use tera::Tera;
 
 use crate::{
@@ -101,10 +102,16 @@ pub async fn create_user_post(
     }
 }
 
+#[derive(Deserialize)]
+pub struct ViewType {
+    pub view_type: String
+}
+
 pub async fn user_profile_get(
     tera: web::Data<Tera>,
     db_pool: web::Data<SqliteConnectionPool>,
     user_id_path: web::Path<(i32,)>,
+    view: Option<Query<ViewType>>
 ) -> impl Responder {
     use crate::schema::users::dsl::*;
 
@@ -150,7 +157,14 @@ pub async fn user_profile_get(
     context.insert("user_profile", &user_profile_vm);
 
     //tera template
-    let rendered = match tera.render("user/profile_partial.html", &context) {
+    //select the template based on the query parameter
+    let mut template = "user/profile_partial.html";
+    if let Some(v) = view {
+        if v.view_type.eq_ignore_ascii_case("full") {
+            template = "user/profile.html";
+        }
+    }
+    let rendered = match tera.render(template, &context) {
         Ok(t) => t,
         Err(e) => {
             return HttpResponse::InternalServerError().body(format!(

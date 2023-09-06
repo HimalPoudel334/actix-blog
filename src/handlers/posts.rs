@@ -85,12 +85,14 @@ pub async fn create_post_get(
 
 pub async fn create_post_post(
     db_pool: web::Data<SqliteConnectionPool>,
-    _jwt_middleware: JwtMiddleware,
+    jwt_middleware: JwtMiddleware,
     post_vm: web::Form<PostCreateVM>,
 ) -> impl Responder {
     use crate::schema::posts::dsl::*;
 
-    let logged_in_user_id: i32 = 1; //should get from auth
+    //get the user id of currently logged in user
+    let logged_in_user_id: i32 = jwt_middleware.user_id;
+
     let new_post = NewPost::new(
         post_vm.title.clone(),
         post_vm.content.clone(),

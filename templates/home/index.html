@@ -26,15 +26,15 @@
                             <a href="/users/profile/{{current_user.id}}">{{ current_user.username }}</a>
                         </h4>
                         <p class="m-b-10">UXUI + Frontend Developer</p>
-                        <a href="/users/profile/edit" class="btn btn-sm btn-info mb-2">Edit Profile</a>
+                        <a href="/posts/create" class="btn btn-sm btn-info mb-2">New Post</a>
                      </div>
                      <!-- END profile-header-info -->
                   </div>
                   <!-- END profile-header-content -->
                   <!-- BEGIN profile-header-tab -->
                   <ul class="profile-header-tab nav nav-tabs">
-                     <li class="nav-item"><a id="initial" href="/posts" class="nav-link_ show shortlink">ALL POSTS</a></li>
-                     <li class="nav-item"><a href="/users/profile/{{current_user.id}}" class="nav-link_ shortlink">PROFILE</a></li>
+                     <li class="nav-item"><a id="initial" href="/posts" class="nav-link_ show shortlink">FEED</a></li>
+                     <li class="nav-item"><a href="/users/profile/{{current_user.id}}?view_type=full" class="nav-link_ shortlink">MY PROFILE</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">ABOUT</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">PHOTOS</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">FRIENDS</a></li>
