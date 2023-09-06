@@ -1,4 +1,4 @@
-use actix_web::{http::header::ContentType, web, HttpResponse, Responder};
+use actix_web::{http::header::{ContentType, LOCATION, HeaderValue}, web, HttpResponse, Responder};
 use diesel::prelude::*;
 use tera::{Context, Tera};
 
@@ -31,6 +31,7 @@ pub async fn index(
             posts::created_on,
             posts::user_id,
         ))
+        .order_by(posts::created_on.desc())
         .load::<UsersPostsVM>(&mut get_db_connection_from_pool(&db_pool).unwrap())
         .optional()
     {
@@ -102,9 +103,11 @@ pub async fn create_post_post(
     let result = diesel::insert_into(posts)
         .values(&new_post)
         .execute(&mut get_db_connection_from_pool(&db_pool).unwrap());
-
     match result {
-        Ok(_) => HttpResponse::Ok().body("Post created successfully"),
+        Ok(_) => {            
+            let hv: String = format!("/users/profile/{}?view_type=full", logged_in_user_id);
+            HttpResponse::SeeOther().append_header((LOCATION, HeaderValue::from_str(&hv).unwrap())).finish()
+        },
         Err(e) => HttpResponse::InternalServerError().body(format!("Error: {:?}", e)),
     }
 }

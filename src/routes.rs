@@ -32,5 +32,5 @@ pub fn app_routes(cfg: &mut web::ServiceConfig) {
             .route("/privacy", web::get().to(home::privacy))
             .route("/set-timezone", web::post().to(home::client_tz_set))
             .route("", web::get().to(home::index)),
-    ).route("/", web::get().to(home::index));
+    );
 }

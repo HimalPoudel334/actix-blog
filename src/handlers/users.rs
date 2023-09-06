@@ -14,7 +14,7 @@ use crate::{
     viewmodels::{
         post::PostVM,
         user::{UserCreateVM, UserProfileVM, UserVM},
-    },
+    }, schema::posts::created_on,
 };
 
 pub async fn index(
@@ -136,6 +136,7 @@ pub async fn user_profile_get(
 
     // get all the posts of the user
     let user_posts: Vec<PostVM> = match Post::belonging_to(&user)
+        .order_by(created_on.desc())
         .load::<PostVM>(&mut get_db_connection_from_pool(&db_pool).unwrap())
         .optional()
     {

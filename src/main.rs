@@ -68,6 +68,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(sqlitedb_pool.clone()))
             .configure(routes::app_routes)
             .service(actix_files::Files::new("/static", "./static")) //serve the static files like
+            .service(web::redirect("/", "/home"))
             .default_service(web::to(handlers::home::error_not_found))
         //css, js and images
     })
