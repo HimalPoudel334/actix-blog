@@ -1,4 +1,8 @@
-use actix_web::{http::header::ContentType, web::{self, Query}, HttpResponse, Responder};
+use actix_web::{
+    http::header::ContentType,
+    web::{self, Query},
+    HttpResponse, Responder,
+};
 use diesel::prelude::*;
 use serde::Deserialize;
 use tera::Tera;
@@ -10,11 +14,12 @@ use crate::{
         post::Post,
         user::{NewUser, User},
     },
+    schema::posts::created_on,
     utils::password_helper::hash_password,
     viewmodels::{
         post::PostVM,
         user::{UserCreateVM, UserProfileVM, UserVM},
-    }, schema::posts::created_on,
+    },
 };
 
 pub async fn index(
@@ -67,7 +72,7 @@ pub async fn create_user_post(
 
     //check if user already exists
     match users
-        .filter(username.eq(user_vm.username.to_owned()))
+        .filter(username.like(format!("%{}%",user_vm.username.to_owned())))
         .select(username)
         .first::<String>(&mut get_db_connection_from_pool(&db_conn_pool).unwrap())
         .optional()
@@ -104,14 +109,14 @@ pub async fn create_user_post(
 
 #[derive(Deserialize)]
 pub struct ViewType {
-    pub view_type: String
+    pub view_type: String,
 }
 
 pub async fn user_profile_get(
     tera: web::Data<Tera>,
     db_pool: web::Data<SqliteConnectionPool>,
     user_id_path: web::Path<(i32,)>,
-    view: Option<Query<ViewType>>
+    view: Option<Query<ViewType>>,
 ) -> impl Responder {
     use crate::schema::users::dsl::*;
 
@@ -184,6 +189,7 @@ pub async fn edit_profile_get(
     tera: web::Data<Tera>,
     db_pool: web::Data<SqliteConnectionPool>,
     auth: JwtMiddleware,
+    view: Option<Query<ViewType>>,
 ) -> impl Responder {
     use crate::schema::users::dsl::*;
     //get the user id of currently logged in user
@@ -210,8 +216,16 @@ pub async fn edit_profile_get(
     let mut context = tera::Context::new();
     context.insert("user_vm", &user_vm);
 
+    //tera template
+    //select the template based on the query parameter
+    let mut template = "user/edit_partial.html";
+    if let Some(v) = view {
+        if v.view_type.eq_ignore_ascii_case("full") {
+            template = "user/edit.html";
+        }
+    }
     //render the template
-    let rendered = match tera.render("user/edit_partial.html", &context) {
+    let rendered = match tera.render(template, &context) {
         Ok(t) => t,
         Err(e) => {
             return HttpResponse::InternalServerError()
