@@ -23,7 +23,7 @@
                      <!-- BEGIN profile-header-info -->
                      <div class="profile-header-info">
                         <h4 class="m-t-10 m-b-5">
-                            <a href="/users/profile/{{current_user.id}}?view_type=full">{{ current_user.username }}</a>
+                           <a href="/users/profile/{{current_user.id}}?view_type=full">{{ current_user.username }}</a>
                         </h4>
                         <p class="m-b-10">UXUI + Frontend Developer</p>
                         <a href="/posts/create" class="btn btn-sm btn-info mb-2">New Post</a>
@@ -34,7 +34,8 @@
                   <!-- BEGIN profile-header-tab -->
                   <ul class="profile-header-tab nav nav-tabs">
                      <li class="nav-item"><a id="initial" href="/posts" class="nav-link_ show shortlink">FEED</a></li>
-                     <li class="nav-item"><a href="/users/profile/{{current_user.id}}" class="nav-link_ shortlink">MY PROFILE</a></li>
+                     <li class="nav-item"><a href="/users/profile/{{current_user.id}}" class="nav-link_ shortlink">MY
+                           PROFILE</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">ABOUT</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">PHOTOS</a></li>
                      <li class="nav-item"><a href="#" class="nav-link_ shortlink">FRIENDS</a></li>
@@ -57,59 +58,59 @@
 {% endblock content %}
 
 {% block script %}
-   <script type="text/javascript">
-      $(document).ready(() => {
-         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-         const data = {
-            timezone: tz
-         };
-         console.log({data: JSON.stringify(data)});
-         $.ajax({
-            url: "/home/set-timezone",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(data), 
-            success: function() {
-               console.log("Success");
-            },
-            error: function (error) {
-               console.log({error: error})
-            }
-         });
+<script type="text/javascript">
+   $(document).ready(() => {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const data = {
+         timezone: tz
+      };
+      console.log({ data: JSON.stringify(data) });
+      $.ajax({
+         url: "/home/set-timezone",
+         method: "POST",
+         contentType: "application/json",
+         data: JSON.stringify(data),
+         success: function () {
+            console.log("Success");
+         },
+         error: function (error) {
+            console.log({ error: error })
+         }
       });
+   });
 
-      $(document).ready(() => {
-         $.ajax({
-            url: "/posts",
-            method: "GET",
-            success: function(data) {
-               $("#initial").toggleClass("active");
-               $("#dynamic-content").html(data);
-           },
-           error: function(error) {
-               console.log({error});
-           }
-         });
+   $(document).ready(() => {
+      $.ajax({
+         url: "/posts",
+         method: "GET",
+         success: function (data) {
+            $("#initial").toggleClass("active");
+            $("#dynamic-content").html(data);
+         },
+         error: function (error) {
+            console.log({ error });
+         }
       });
+   });
 
-      $(".shortlink").on("click", e => {
-          e.preventDefault();
-          const clickedLink = $(e.target);
-          const href = clickedLink.attr("href");
-          console.log(href);
-          if(href === "#" || href === undefined) return;
-          $.ajax({
-              url: href,
-              method: "GET",
-              success: function(data) {
-                  $(".shortlink").removeClass("active");
-                  clickedLink.toggleClass("active");
-                  $("#dynamic-content").html(data);
-              },
-              error: function(error) {
-                  console.log({error});
-              }
-          });
+   $(".shortlink").click(e => {
+      e.preventDefault();
+      const clickedLink = $(e.target);
+      const href = clickedLink.attr("href");
+      console.log(href);
+      if (href === "#" || href === undefined) return;
+      $.ajax({
+         url: href,
+         method: "GET",
+         success: function (data) {
+            $(".shortlink").removeClass("active");
+            clickedLink.toggleClass("active");
+            $("#dynamic-content").html(data);
+         },
+         error: function (error) {
+            console.log({ error });
+         }
       });
-   </script>
+   });
+</script>
 {% endblock %}

@@ -25,6 +25,7 @@ pub fn app_routes(cfg: &mut web::ServiceConfig) {
             .route("/create", web::get().to(posts::create_post_get))
             .route("/create", web::post().to(posts::create_post_post))
             .route("/edit", web::post().to(posts::edit_post_post))
+            .route("/like/{post_id}", web::post().to(posts::like_post))
             .route("/edit/{post_id}", web::get().to(posts::edit_post_get)),
     )
     .service(

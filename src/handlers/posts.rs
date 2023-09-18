@@ -1,11 +1,17 @@
-use actix_web::{http::header::{ContentType, LOCATION, HeaderValue}, web, HttpResponse, Responder};
+use actix_web::{
+    http::header::{ContentType, HeaderValue, LOCATION},
+    web, HttpResponse, Responder,
+};
 use diesel::prelude::*;
 use tera::{Context, Tera};
 
 use crate::{
     auth::jwt_middleware::JwtMiddleware,
     db::connection::{get_db_connection_from_pool, SqliteConnectionPool},
-    models::post::{NewPost, Post},
+    models::{
+        post::{NewPost, Post},
+        post_like::PostLike,
+    },
     viewmodels::post::{PostCreateVM, PostVM, UsersPostsVM},
 };
 
@@ -104,10 +110,12 @@ pub async fn create_post_post(
         .values(&new_post)
         .execute(&mut get_db_connection_from_pool(&db_pool).unwrap());
     match result {
-        Ok(_) => {            
+        Ok(_) => {
             let hv: String = format!("/users/profile/{}?view_type=full", logged_in_user_id);
-            HttpResponse::SeeOther().append_header((LOCATION, HeaderValue::from_str(&hv).unwrap())).finish()
-        },
+            HttpResponse::SeeOther()
+                .append_header((LOCATION, HeaderValue::from_str(&hv).unwrap()))
+                .finish()
+        }
         Err(e) => HttpResponse::InternalServerError().body(format!("Error: {:?}", e)),
     }
 }
@@ -206,6 +214,77 @@ pub async fn edit_post_post(
         Err(e) => {
             return HttpResponse::InternalServerError()
                 .body(format!("Ops! something went wrong while updating: {}", e))
+        }
+    }
+}
+
+pub async fn like_post(
+    post_id: web::Path<i32>,
+    db_pool: web::Data<SqliteConnectionPool>,
+    auth: JwtMiddleware,
+) -> impl Responder {
+    use crate::schema::post_likes;
+    use crate::schema::posts;
+
+    let logged_in_user: i32 = auth.user_id;
+
+    //get the user from db
+    let post_id: i32 = match posts::table
+        .find(post_id.into_inner())
+        .select(posts::id)
+        .first(&mut get_db_connection_from_pool(&db_pool).unwrap())
+        .optional()
+    {
+        Ok(pid) => match pid {
+            Some(id) => id,
+            None => return HttpResponse::NotFound().finish(),
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ops! something went wrong: {}", e))
+        }
+    };
+
+    //get the previous like count on that post
+    let likes_count: usize = post_likes::table
+        .filter(post_likes::post_id.eq(post_id))
+        .count()
+        .execute(&mut get_db_connection_from_pool(&db_pool).unwrap())
+        .unwrap_or(0);
+    println!("{}", likes_count);
+
+    let post_like: PostLike = PostLike::new(logged_in_user, post_id);
+    let result = diesel::insert_into(post_likes::table)
+        .values(&post_like)
+        .execute(&mut get_db_connection_from_pool(&db_pool).unwrap());
+
+    match result {
+        Ok(_) => HttpResponse::Ok()
+            .content_type(ContentType::plaintext())
+            .body(format!("Post liked. Total likes is {}", likes_count + 1)),
+        Err(err) => {
+            println!("already liked");
+            //if insertion error occurs then there is already a row with the given post_id and user_id
+            //So we will remove that row
+            let result = diesel::delete(
+                post_likes::table
+                    .filter(post_likes::user_id.eq(logged_in_user))
+                    .filter(post_likes::post_id.eq(post_id)),
+            )
+            .execute(&mut get_db_connection_from_pool(&db_pool).unwrap());
+
+            match result {
+                Ok(_) => HttpResponse::Ok()
+                    .content_type(ContentType::plaintext())
+                    .body(format!(
+                        "Post was already liked. Total likes: {}",
+                        likes_count - 1
+                    )),
+                Err(e) => HttpResponse::InternalServerError().body(format!(
+                    "Something went wrong while removing like: {}-{}",
+                    err, e
+                )),
+            }
         }
     }
 }
